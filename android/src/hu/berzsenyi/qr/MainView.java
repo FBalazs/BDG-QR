@@ -24,7 +24,8 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback {
 		if(this.previewRunning)
 			this.camera.stopPreview();
 		this.previewRunning = false;
-		this.camera.release();
+		if(this.camera != null)
+			this.camera.release();
 	}
 	
 	public void readQR(byte[] data) {
