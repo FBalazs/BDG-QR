@@ -70,6 +70,7 @@ public class MainActivity extends Activity {
 				this.camera.release();
 				this.camera = null;
 			}
+			e.printStackTrace();
 			// TODO: close application
 		}
 	}
