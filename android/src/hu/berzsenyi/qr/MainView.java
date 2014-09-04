@@ -54,9 +54,7 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback {
 	
 	@Override
 	protected void onDraw(Canvas canvas) {
-		if(this.previewRunning) {
-			
-		}
+		
 	}
 
 	@Override
