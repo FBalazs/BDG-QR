@@ -23,9 +23,7 @@ public class MainActivity extends Activity {
 		Log.d(TAG, "onTouchEvent");
 		if (e.getAction() == MotionEvent.ACTION_DOWN && this.view.getWidth() / 10 < e.getX() && e.getX() < this.view.getWidth() * 9 / 10
 				&& this.view.getHeight() / 10 < e.getY() && e.getY() < this.view.getHeight() * 9 / 10) {
-			Log.d(TAG, "asd1");
 			if(this.camera != null) {
-				Log.d(TAG, "asd2");
 				new Thread() {
 					@Override
 					public void run() {
@@ -38,6 +36,8 @@ public class MainActivity extends Activity {
 						}, null);
 					}
 				}.start();
+			} else {
+				Log.d(TAG, "camera is null");
 			}
 			return true;
 		}
@@ -70,7 +70,6 @@ public class MainActivity extends Activity {
 				this.camera.release();
 				this.camera = null;
 			}
-			e.printStackTrace();
 			// TODO: close application
 		}
 	}
