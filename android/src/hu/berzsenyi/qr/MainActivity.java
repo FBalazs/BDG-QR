@@ -10,13 +10,14 @@ import android.view.SurfaceView;
 public class MainActivity extends Activity {
 	public static final String TAG = "BDG-QR";
 	
-	private Camera camera;
-	private SurfaceView view;
-	private boolean isTakingPicture;
+	private Camera camera = null;
+	private SurfaceView view = null;
+	private boolean isTakingPicture = false;
 	
 	private void processImage(byte[] data) {
 		Log.d(TAG, "processImage");
 		
+		this.isTakingPicture = false;
 	}
 
 	@Override
@@ -37,7 +38,6 @@ public class MainActivity extends Activity {
 									processImage(data);
 								}
 							}, null);
-							isTakingPicture = false;
 						}
 					}.start();
 				}
