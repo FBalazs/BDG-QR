@@ -9,9 +9,10 @@ import android.view.SurfaceView;
 
 public class MainActivity extends Activity {
 	public static final String TAG = "BDG-QR";
-
+	
 	private Camera camera;
 	private SurfaceView view;
+	private boolean isTakingPicture;
 	
 	private void processImage(byte[] data) {
 		Log.d(TAG, "processImage");
@@ -24,18 +25,22 @@ public class MainActivity extends Activity {
 		if (e.getAction() == MotionEvent.ACTION_DOWN && this.view.getWidth() / 10 < e.getX() && e.getX() < this.view.getWidth() * 9 / 10
 				&& this.view.getHeight() / 10 < e.getY() && e.getY() < this.view.getHeight() * 9 / 10) {
 			if(this.camera != null) {
-				new Thread() {
-					@Override
-					public void run() {
-						Log.d(TAG, "takePicture");
-						camera.takePicture(null, new Camera.PictureCallback() {
-							@Override
-							public void onPictureTaken(byte[] data, Camera camera) {
-								processImage(data);
-							}
-						}, null);
-					}
-				}.start();
+				if(!this.isTakingPicture) {
+					this.isTakingPicture = true;
+					new Thread() {
+						@Override
+						public void run() {
+							Log.d(TAG, "takePicture");
+							camera.takePicture(null, new Camera.PictureCallback() {
+								@Override
+								public void onPictureTaken(byte[] data, Camera camera) {
+									processImage(data);
+								}
+							}, null);
+							isTakingPicture = false;
+						}
+					}.start();
+				}
 			} else {
 				Log.d(TAG, "camera is null");
 			}
