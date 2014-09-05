@@ -1,10 +1,13 @@
 package hu.berzsenyi.qr;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.ImageView;
 
 public class MainActivity extends Activity implements Camera.PictureCallback {
 	public static final String TAG = "MainActivity.java";
@@ -12,11 +15,34 @@ public class MainActivity extends Activity implements Camera.PictureCallback {
 	private AdvancedCamera camera;
 	private CameraView view;
 	
+	private boolean showPicture = true;
+	
+	private void processQR(boolean[][] bits) {
+		
+	}
+	
 	@Override
 	public void onPictureTaken(byte[] data, Camera camera) {
 		Log.d(TAG, "onPictureTaken");
 		if(data == null)
 			Log.e(TAG, "null picture");
+		Bitmap img = BitmapFactory.decodeByteArray(data, 0, data.length);
+		if(this.showPicture) {
+			ImageView imgView = new ImageView(this);
+			imgView.setImageBitmap(img);
+			this.setContentView(imgView);
+		}
+		
+		// TODO: detect qr code
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		this.processQR(null);
+		
+		if(this.showPicture)
+			this.setContentView(this.view);
 	}
 
 	@Override

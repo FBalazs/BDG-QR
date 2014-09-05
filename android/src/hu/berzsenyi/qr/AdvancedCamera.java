@@ -1,5 +1,7 @@
 package hu.berzsenyi.qr;
 
+import java.util.List;
+
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -45,8 +47,8 @@ public class AdvancedCamera {
 			this.camera.takePicture(null, null, new Camera.PictureCallback() {
 				@Override
 				public void onPictureTaken(byte[] data, Camera camera) {
-					callback.onPictureTaken(data, camera);
 					camera.startPreview();
+					callback.onPictureTaken(data, camera);
 					isTakingPicture = false;
 				}
 			});
@@ -62,7 +64,13 @@ public class AdvancedCamera {
 		try {
 			this.camera.stopPreview();
 			Camera.Parameters params = this.camera.getParameters();
-			params.setPreviewSize(width, height);
+			List<Camera.Size> previewSizes = params.getSupportedPreviewSizes();
+			Camera.Size previewSize = null;
+			for(Camera.Size size : previewSizes)
+				if(previewSize == null || previewSize.width < size.width)
+					previewSize = size;
+			Log.i(TAG, "setting preview size to "+previewSize.width+"*"+previewSize.height);
+			params.setPreviewSize(previewSize.width, previewSize.height);
 			this.camera.setParameters(params);
 			this.camera.startPreview();
 			return 0;
