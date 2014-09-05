@@ -34,11 +34,6 @@ public class MainActivity extends Activity implements Camera.PictureCallback {
 		}
 		
 		// TODO: detect qr code
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		this.processQR(null);
 		
 		if(this.showPicture)
