@@ -15,7 +15,7 @@ public class MainActivity extends Activity implements Camera.PictureCallback {
 	private AdvancedCamera camera;
 	private CameraView view;
 	
-	private boolean showPicture = true;
+	private boolean showPicture = false;
 	
 	private void processQR(boolean[][] bits) {
 		
@@ -33,20 +33,26 @@ public class MainActivity extends Activity implements Camera.PictureCallback {
 			this.setContentView(imgView);
 		}
 		
-		// TODO: detect qr code
-//		double avgBright = 0;
-//		for(int i = 0; i < img.getWidth(); i++)
-//			for(int j = 0; j < img.getHeight(); j++) {
-//				int rgb = img.getPixel(i, j);
-//				int c = (rgb >> 16 + (rgb >> 8) & 255 + rgb & 255)/3;
-//				avgBright += c/(double)(img.getWidth()*img.getHeight());
-//				img.setPixel(i, j, c);
-//			}
-//		boolean[][] imgBW = new boolean[img.getWidth()][img.getHeight()];
-//		for(int i = 0; i < img.getWidth(); i++)
-//			for(int j = 0; j < img.getHeight(); j++)
-//				imgBW[i][j] = img.getPixel(i, j) > avgBright;
-//		Log.d(TAG, "avgBright="+avgBright);
+		long time = System.currentTimeMillis();
+		
+		int[] pixels = new int[img.getWidth()*img.getHeight()];
+		img.getPixels(pixels, 0, img.getWidth(), 0, 0, img.getWidth(), img.getHeight());
+		long brightAvg = 0;
+		for(int i = 0; i < img.getWidth(); i++)
+			for(int j = 0; j < img.getHeight(); j++) {
+				int rgb = pixels[j*img.getWidth()+i];
+				brightAvg += rgb >> 16 + (rgb >> 8) & 255 + rgb & 255;
+			}
+		brightAvg /= img.getWidth()*img.getHeight();
+		boolean[][] imgBW = new boolean[img.getWidth()][img.getHeight()];
+		for(int i = 0; i < img.getWidth(); i++)
+			for(int j = 0; j < img.getHeight(); j++) {
+				int rgb = pixels[j*img.getWidth()+i];
+				imgBW[i][j] = (rgb >> 16 + (rgb >> 8) & 255 + rgb & 255) > brightAvg;
+			}
+		Log.i(TAG, "avgBright="+brightAvg);
+		
+		Log.i(TAG, "deltaTime="+(System.currentTimeMillis()-time));
 		
 		this.processQR(null);
 		
