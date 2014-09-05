@@ -42,7 +42,6 @@ public class AdvancedCamera {
 		try {
 			if(this.isTakingPicture)
 				return 0;
-			this.camera.stopPreview();
 			this.isTakingPicture = true;
 			this.camera.takePicture(null, null, new Camera.PictureCallback() {
 				@Override
