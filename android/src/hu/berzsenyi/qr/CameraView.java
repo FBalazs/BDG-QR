@@ -16,6 +16,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 		this.camera = camera;
 		this.getHolder().addCallback(this);
 		this.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		this.getHolder().setKeepScreenOn(true);
 	}
 	
 	@Override

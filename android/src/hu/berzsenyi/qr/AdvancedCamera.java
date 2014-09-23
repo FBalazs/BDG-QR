@@ -27,6 +27,7 @@ public class AdvancedCamera {
 	public int startPreview(SurfaceHolder holder) {
 		Log.d(TAG, "startPreview");
 		try {
+			//this.camera.setDisplayOrientation(0);
 			this.camera.setPreviewDisplay(holder);
 			this.camera.startPreview();
 			return 0;
@@ -58,7 +59,7 @@ public class AdvancedCamera {
 		}
 	}
 	
-	public int setPreviewSize(int width, int height) {
+	public Camera.Size setPreviewSize(int width, int height) {
 		Log.d(TAG, "setPreviewSize");
 		try {
 			this.camera.stopPreview();
@@ -70,13 +71,30 @@ public class AdvancedCamera {
 					previewSize = size;
 			Log.i(TAG, "setting preview size to "+previewSize.width+"*"+previewSize.height);
 			params.setPreviewSize(previewSize.width, previewSize.height);
+			if(width > height) {
+				params.setRotation(0);
+			} else {
+				params.setRotation(90);
+				int s = previewSize.width;
+				previewSize.width = previewSize.height;
+				previewSize.height = s;
+			}
+			
+			List<Camera.Size> pictureSizes = params.getSupportedPictureSizes();
+			Camera.Size pictureSize = null;
+			for(Camera.Size size : pictureSizes)
+				if(pictureSize == null || pictureSize.width > size.width)
+					pictureSize = size;
+			Log.i(TAG, "setting picture size to "+pictureSize.width+"*"+pictureSize.height);
+			params.setPictureSize(pictureSize.width, pictureSize.height);
+			
 			this.camera.setParameters(params);
 			this.camera.startPreview();
-			return 0;
+			return previewSize;
 		} catch(Exception e) {
 			Log.e(TAG, e.toString());
 			this.release();
-			return -1;
+			return null;
 		}
 	}
 	
