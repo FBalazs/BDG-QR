@@ -24,8 +24,8 @@ public class HoughTransform {
 			for(int sy = 0; sy < this.heightIn; sy++)
 				if(this.pixels[sx][sy])
 					for(int hx = 0; hx < this.widthOut; hx++) {
-						int hy = (int)(sx*Math.cos(hx*Math.PI/180) + sy*Math.sin(hx*Math.PI/180));
-						if(hy >= 0) {
+						int hy = this.heightOut-1-(int)(sx*Math.cos(hx*Math.PI/180) + sy*Math.sin(hx*Math.PI/180));
+						if(0 <= hy && hy < this.heightOut) {
 							this.houghSpace[hx][hy]++;
 							if(this.maxStrength < this.houghSpace[hx][hy])
 								this.maxStrength = this.houghSpace[hx][hy];
