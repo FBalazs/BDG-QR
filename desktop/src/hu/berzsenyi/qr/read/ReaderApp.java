@@ -21,7 +21,7 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 		new Thread(instance, "QR Thread").start();
 	}
 	
-	String imgFilePath = "qr.jpg";
+	String imgFilePath = "qr.png";
 	int width, height;
 	int[] pixels;
 	
