@@ -10,9 +10,21 @@ public class CannyEdgeDetector {
 	float[][] gdtStrength;
 	int[][] gdtDir;
 	boolean[][] edges;
-	int gausRadius = 1;
-	float gausThreshold = 2F;
+	int gausRadius;
+	float gausThreshold;
 	float[][] gausMask;
+	float thresholdLow, thresholdHigh;
+	
+	public CannyEdgeDetector() {
+		this(2, 1F, 200F, 250F);
+	}
+	
+	public CannyEdgeDetector(int gausR, float gausT, float thresholdLow, float thresholdHigh) {
+		this.gausRadius = gausR;
+		this.gausThreshold = gausT;
+		this.thresholdLow = thresholdLow;
+		this.thresholdHigh = thresholdHigh;
+	}
 
 	public void setData(int width, int height, int[] pixels) {
 		this.width = width;
@@ -92,6 +104,36 @@ public class CannyEdgeDetector {
 				}
 	}
 	
+	void parseEdge(int x, int y) {
+		int dx = 0, dy = 0;
+		if(this.gdtDir[x][y] == 0)
+			dx = 1;
+		else if(this.gdtDir[x][y] == 45)
+			dx = dy = 1;
+		else if(this.gdtDir[x][y] == 90)
+			dy = 1;
+		else if(this.gdtDir[x][y] == 135) {
+			dx = -1;
+			dy = 1;
+		}
+		int nx = x+dx, ny = y+dy;
+		while(0 <= nx && nx < this.width && 0 <= ny && ny < this.height && this.gdtDir[x][y] == this.gdtDir[nx][ny] && this.thresholdLow <= this.gdtStrength[nx][ny]) {
+			this.edges[nx][ny] = true;
+			nx += dx;
+			ny += dy;
+		}
+	}
+	
+	void parseEdges() {
+		this.edges = new boolean[this.width][this.height];
+		for(int x = 0; x < this.width; x++)
+			for(int y = 0; y < this.height; y++)
+				if(this.thresholdHigh <= this.gdtStrength[x][y] && this.gdtDir[x][y] != -1) {
+					this.edges[x][y] = true;
+					this.parseEdge(x, y);
+				}
+	}
+	
 	public BufferedImage getBlured() {
 		BufferedImage ret = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
 		for(int x = 0; x < this.width; x++)
@@ -116,10 +158,22 @@ public class CannyEdgeDetector {
 					ret.setRGB(x, y, Color.black.getRGB());
 		return ret;
 	}
+	
+	public BufferedImage getTraced() {
+		BufferedImage ret = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
+		for(int x = 0; x < this.width; x++)
+			for(int y = 0; y < this.height; y++)
+				if(this.edges[x][y])
+					ret.setRGB(x, y, Color.white.getRGB());
+				else
+					ret.setRGB(x, y, Color.black.getRGB());
+		return ret;
+	}
 
 	public void process() {
 		this.gausSmoothing();
 		this.sobelMasking();
+		this.parseEdges();
 	}
 
 	public boolean[][] getOutput() {

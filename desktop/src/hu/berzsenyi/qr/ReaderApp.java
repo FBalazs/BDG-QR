@@ -23,14 +23,14 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	
 	String imgFilePath = "qr.jpg";
 	int width, height;
-	BufferedImage img;
 	int[] pixels;
 	
-	BufferedImage imgBlured;
-	BufferedImage imgEdges;
+	BufferedImage img, imgBlured, imgSobelMasked;
+	BufferedImage imgEdges, imgHough;
 	
 	Robot robot;
 	CannyEdgeDetector edgeDetector;
+	HoughTransform houghTransform;
 	
 	public ReaderApp() throws Exception {
 		super("QR Reader");
@@ -50,11 +50,16 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 		this.edgeDetector = new CannyEdgeDetector();
 		this.edgeDetector.setData(this.width, this.height, this.pixels);
 		this.edgeDetector.process();
+		this.houghTransform = new HoughTransform();
+		this.houghTransform.setData(this.width, this.height, this.edgeDetector.getOutput());
+		this.houghTransform.transform();
 	}
 	
 	public void postProcess() {
 		this.imgBlured = this.edgeDetector.getBlured();
-		this.imgEdges = this.edgeDetector.getSobelMasked();
+		this.imgSobelMasked = this.edgeDetector.getSobelMasked();
+		this.imgEdges = this.edgeDetector.getTraced();
+		this.imgHough = this.houghTransform.getOutputAsImg();
 	}
 	
 	public void init() throws Exception {
@@ -82,7 +87,10 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 		
 		g.drawImage(this.img, 0, 0, null);
 		g.drawImage(this.imgBlured, this.width, 0, null);
-		g.drawImage(this.imgEdges, this.width*2, this.height, null);
+		g.drawImage(this.imgSobelMasked, this.width*2, 0, null);
+		g.drawImage(this.imgEdges, 0, this.height, null);
+		g.drawImage(this.imgHough, this.width, this.height, this.width*2, this.height*2, 0, 0, imgHough.getWidth(), imgHough.getHeight(), null);
+		//g.drawImage(this.imgHough, this.width, this.height, null);
 		
 		g.dispose();
 		this.getBufferStrategy().show();
