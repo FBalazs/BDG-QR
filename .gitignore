@@ -1,7 +1,6 @@
 android/bin/*
 android/gen/*
 desktop/bin/*
-desktop/gen/*
 desktop/.project
 desktop/.classpath
 desktop/.settings/*
