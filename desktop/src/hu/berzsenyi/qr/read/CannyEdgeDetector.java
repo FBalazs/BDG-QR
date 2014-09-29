@@ -4,16 +4,16 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 public class CannyEdgeDetector {
-	int width, height;
-	int[] pixels;
-	float gdtMaxStrength;
-	float[][] gdtStrength;
-	int[][] gdtDir;
-	boolean[][] edges;
-	int gausRadius;
-	float gausThreshold;
-	float[][] gausMask;
-	float thresholdLow, thresholdHigh;
+	private int width, height;
+	private int[] pixels;
+	private float gdtMaxStrength;
+	private float[][] gdtStrength;
+	private int[][] gdtDir;
+	private boolean[][] edges;
+	private int gausRadius;
+	private float gausThreshold;
+	private float[][] gausMask;
+	private float thresholdLow, thresholdHigh;
 	
 	public CannyEdgeDetector() {
 		this(2, 1F, 200F, 250F);
@@ -85,7 +85,7 @@ public class CannyEdgeDetector {
 					this.gdtStrength[x][y] = (float)Math.sqrt(gx*gx + gy*gy);
 					if(this.gdtMaxStrength < this.gdtStrength[x][y])
 						this.gdtMaxStrength = this.gdtStrength[x][y];
-					float deg = (float)(Math.atan(gy/(float)gx)*180/Math.PI);
+					float deg = MathHelper.atan(gy/(float)gx);
 					if(-90F <= deg && deg < -67.5F)
 						this.gdtDir[x][y] = 90;
 					else if(-67.5F < deg && deg <= -22.5F)
@@ -177,6 +177,6 @@ public class CannyEdgeDetector {
 	}
 
 	public boolean[][] getOutput() {
-		return edges;
+		return this.edges;
 	}
 }
