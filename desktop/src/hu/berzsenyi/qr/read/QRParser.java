@@ -110,9 +110,10 @@ public class QRParser {
 							e2 = this.rayTrace(f1.x, f1.y, f1.x+(f1.x-f2.x), f1.y+(f1.y-f2.y), 3);
 							Coords oneY = new Coords((e2.x-e1.x)/7F, (e2.y-e1.y)/7F);
 							
-							this.qrSize = this.countEdges(f2.x+oneX.x*4F+oneY.x*3F, f2.y+oneX.y*4F+oneY.y*3F, f3.x-oneX.x*3F-oneY.x*3F, f3.y+oneX.y*3F+oneY.y*3F) + 14;
+							int s = this.countEdges(f2.x+oneX.x*4F+oneY.x*3F, f2.y+oneX.y*4F+oneY.y*3F, f3.x-oneX.x*3F-oneY.x*3F, f3.y+oneX.y*3F+oneY.y*3F) + 14;
 							//System.out.println(this.qrSize + " " + (this.countEdges(f2.x+oneX.x*3F+oneY.x*3F, f2.y+oneX.y*3F+oneY.y*3F, f1.x+oneX.x*3F+oneY.x*3F, f1.y-oneX.y*3F-oneY.y*3F)-1 + 14));
-							if(this.qrSize == this.countEdges(f2.x+oneX.x*3F+oneY.x*4F, f2.y+oneX.y*3F+oneY.y*4F, f1.x+oneX.x*3F+oneY.x*3F, f1.y-oneX.y*3F-oneY.y*3F) + 14) {
+							if(s == this.countEdges(f2.x+oneX.x*3F+oneY.x*4F, f2.y+oneX.y*3F+oneY.y*4F, f1.x+oneX.x*3F+oneY.x*3F, f1.y-oneX.y*3F-oneY.y*3F) + 14) {
+								this.qrSize = s;
 								this.qr = new boolean[this.qrSize][this.qrSize];
 								Coords origo = new Coords(f2.x-oneX.x*3F-oneY.x*3F, f2.y-oneX.y*3F-oneY.y*3F);
 //								Coords topLeftLeftSide = new Coords(f2.x-oneX.x*3F+oneY.x*3F - origo.x, f2.y-oneX.y*3F+oneY.y*3F - origo.y);
@@ -130,12 +131,19 @@ public class QRParser {
 										for(int i = 0; i < this.qrSize; i++) {
 											int index = ((int)(origo.y+baseX.y*i/(this.qrSize-1)+baseY.y*j/(this.qrSize-1)))*this.width+(int)(origo.x+baseX.x*i/(this.qrSize-1)+baseY.x*j/(this.qrSize-1));
 											this.examined[index] = true;
-											this.qr[i][j] = this.pixels[index] < 128;
+											this.qr[i][j] = this.pixels[index] < 100;
 										}
 									boolean ok = true;
 									for(int i = 0; i < 7; i++)
-										if(!this.qr[i][0] || !this.qr[0][i])
+										if(!this.qr[i][0] || !this.qr[0][i] || !this.qr[6][i] || !this.qr[i][6])
 											ok = false;
+									for(int i = 0; i < 5; i++)
+										if(this.qr[1+i][1] || this.qr[1][1+i] || this.qr[4][1+i] || this.qr[1+i][4])
+											ok = false;
+									for(int i = 0; i < 3; i++)
+										for(int j = 0; j < 3; j++)
+											if(!this.qr[2+i][2+j])
+												ok = false;
 									if(ok) {
 										System.out.println("The code is ok!");
 										return;

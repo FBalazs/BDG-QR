@@ -21,12 +21,13 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	static ReaderApp instance;
 
 	public static void main(String[] args){
-		instance = new ReaderApp(JOptionPane.showInputDialog(null, "Please type in the file's path!"));
+		instance = new ReaderApp();
 		instance.setVisible(true);
 		new Thread(instance, "QR Thread").start();
 	}
-
-	String imgFilePath = "qr0.png";
+	
+	Configuration config;
+	
 	int width, height;
 	int[] pixels;
 
@@ -44,9 +45,8 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	int qrSize;
 	boolean[][] qrData;
 
-	public ReaderApp(String fileName) {
+	public ReaderApp() {
 		super("QR Reader");
-		this.imgFilePath = fileName;
 		this.addWindowListener(this);
 	}
 
@@ -60,14 +60,14 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	}
 
 	public void process() {
-		this.edgeDetector = new CannyEdgeDetector();
+		this.edgeDetector = new CannyEdgeDetector(this.cannyGausR, this.cannyGausT, this.cannyLT, this.cannyHT);
 		this.edgeDetector.setData(this.width, this.height, this.pixels);
 		this.edgeDetector.process();
 		// this.houghTransform = new HoughTransform();
 		// this.houghTransform.setData(this.width, this.height,
 		// this.edgeDetector.getOutput());
 		// this.houghTransform.transform();
-		this.finderPatternFinder = new FinderPatternFinder();
+		this.finderPatternFinder = new FinderPatternFinder(this.finderPatternFinderRange, this.finderPatternFinderRange2);
 		this.finderPatternFinder.setData(this.width, this.height, this.edgeDetector.getOutput());
 		this.finderPatternFinder.process();
 		this.finderPatterns = this.finderPatternFinder.getOutput();
@@ -100,13 +100,35 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 						g.fillArc(i - 1, j - 1, 3, 3, 0, 360);
 		}
 	}
-
+	
+	int maxSize = 500;
+	float finderPatternFinderRange = 0.5F;
+	int finderPatternFinderRange2 = 100;
+	int cannyGausR = 2;
+	float cannyGausT = 1F;
+	float cannyLT = 150F;
+	float cannyHT = 250F;
+	
 	public void init() throws Exception {
 //		this.robot = new Robot();
-
-		this.img = ImageIO.read(new File(imgFilePath));
-		if(500 < this.img.getWidth() || 500 < this.img.getHeight()) {
-			float ratio = Math.min(500F/this.img.getWidth(), 500F/this.img.getHeight());
+		
+		this.config = new Configuration("config.txt");
+		this.config.read();
+		String file = this.config.getValue("img", "");
+		this.maxSize = Integer.parseInt(this.config.getValue("maxSize", ""+this.maxSize));
+		this.finderPatternFinderRange = Float.parseFloat(this.config.getValue("finderPatternFinderRange", ""+this.finderPatternFinderRange));
+		this.finderPatternFinderRange2 = Integer.parseInt(this.config.getValue("finderPatternFinderRange2", ""+this.finderPatternFinderRange2));
+		this.cannyGausR = Integer.parseInt(this.config.getValue("cannyGausR", ""+this.cannyGausR));
+		this.cannyGausT = Float.parseFloat(this.config.getValue("cannyGausT", ""+this.cannyGausT));
+		this.cannyLT = Float.parseFloat(this.config.getValue("cannyLT", ""+this.cannyLT));
+		this.cannyHT = Float.parseFloat(this.config.getValue("cannyHT", ""+this.cannyHT));
+		this.config.write();
+		
+		if(file.equals(""))
+			file = JOptionPane.showInputDialog(null, "Please type in the file's path!");
+		this.img = ImageIO.read(new File(file));
+		if(this.maxSize < this.img.getWidth() || this.maxSize < this.img.getHeight()) {
+			float ratio = Math.min(this.maxSize/(float)this.img.getWidth(), this.maxSize/(float)this.img.getHeight());
 			Image scaledImg = this.img.getScaledInstance((int)(this.img.getWidth()*ratio), (int)(this.img.getHeight()*ratio), Image.SCALE_SMOOTH);
 			this.img = new BufferedImage((int)(this.img.getWidth()*ratio), (int)(this.img.getHeight()*ratio), BufferedImage.TYPE_INT_RGB);
 			Graphics2D g = this.img.createGraphics();

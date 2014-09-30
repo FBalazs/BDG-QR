@@ -8,8 +8,17 @@ public class FinderPatternFinder {
 	private int width, height;
 	private boolean[][] bitmap;
 	private List<FinderPattern> output;
-	private float range = 0.5F; // one equals one's range
-	private int range2 = 100; // finder pattern equals squared range
+	private float range; // one equals one's range
+	private int range2; // finder pattern equals squared range
+	
+	public FinderPatternFinder() {
+		this(0.5F, 100);
+	}
+	
+	public FinderPatternFinder(float range, int range2) {
+		this.range = range;
+		this.range2 = range2;
+	}
 	
 	public void setData(int width, int height, boolean[][] bitmap) {
 		this.width = width;
