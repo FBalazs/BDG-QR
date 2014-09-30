@@ -16,7 +16,7 @@ public class CannyEdgeDetector {
 	private float thresholdLow, thresholdHigh;
 	
 	public CannyEdgeDetector() {
-		this(2, 1F, 200F, 250F);
+		this(2, 1F, 150F, 250F);
 	}
 	
 	public CannyEdgeDetector(int gausR, float gausT, float thresholdLow, float thresholdHigh) {
@@ -147,13 +147,13 @@ public class CannyEdgeDetector {
 		for(int x = 0; x < this.width; x++)
 			for(int y = 0; y < this.height; y++)
 				if(this.gdtDir[x][y] == 0)
-					ret.setRGB(x, y, new Color(this.gdtStrength[x][y]/this.gdtMaxStrength, 0F, 0F).getRGB());
+					ret.setRGB(x, y, new Color((float)(this.gdtStrength[x][y]/this.gdtMaxStrength), 0F, 0F).getRGB());
 				else if(this.gdtDir[x][y] == 45)
-					ret.setRGB(x, y, new Color(0F, this.gdtStrength[x][y]/this.gdtMaxStrength, 0F).getRGB());
+					ret.setRGB(x, y, new Color(0F, (float)(this.gdtStrength[x][y]/this.gdtMaxStrength), 0F).getRGB());
 				else if(this.gdtDir[x][y] == 90)
-					ret.setRGB(x, y, new Color(0F, 0F, this.gdtStrength[x][y]/this.gdtMaxStrength).getRGB());
+					ret.setRGB(x, y, new Color(0F, 0F, (float)(this.gdtStrength[x][y]/this.gdtMaxStrength)).getRGB());
 				else if(this.gdtDir[x][y] == 135)
-					ret.setRGB(x, y, new Color(this.gdtStrength[x][y]/this.gdtMaxStrength, this.gdtStrength[x][y]/this.gdtMaxStrength, 0F).getRGB());
+					ret.setRGB(x, y, new Color((float)(this.gdtStrength[x][y]/this.gdtMaxStrength), (float)(this.gdtStrength[x][y]/this.gdtMaxStrength), 0F).getRGB());
 				else
 					ret.setRGB(x, y, Color.black.getRGB());
 		return ret;

@@ -63,7 +63,7 @@ public class QRParser {
 	}
 	
 	public int countEdges(float x1, float y1, float x2, float y2) {
-		System.out.println("countEdges("+x1+", "+y1+", "+x2+", "+y2+")");
+//		System.out.println("countEdges("+x1+", "+y1+", "+x2+", "+y2+")");
 		float x = x1;
 		float y = y1;
 		float dx = x2-x1;
@@ -89,16 +89,18 @@ public class QRParser {
 	public void parse() {
 		for(int i1 = 0; i1 < this.finderPatterns.size(); i1++)
 			for(int i2 = 0; i2 < this.finderPatterns.size(); i2++)
-				for(int i3 = 0; i3 < this.finderPatterns.size(); i3++)
-					if(i1 != i2 && i2 != i3 && i1 != i3 && i1 == 1 && i2 == 0 && i3 == 2) {
+				for(int i3 = 0; i3 < this.finderPatterns.size(); i3++) {
+					//if(i1 != i2 && i2 != i3 && i1 != i3 && i1 == 1 && i2 == 0 && i3 == 2) {
 						FinderPattern f1 = this.finderPatterns.get(i1);
 						FinderPattern f2 = this.finderPatterns.get(i2);
 						FinderPattern f3 = this.finderPatterns.get(i3);
 						
-						System.out.println();
-						System.out.println("finder patterns:");
-						System.out.println(i2+"("+f2.x+", "+f2.y+") "+i3+"("+f3.x+", "+f3.y+")");
-						System.out.println(i1+"("+f1.x+", "+f1.y+")");
+						
+						
+//						System.out.println();
+//						System.out.println("finder patterns:");
+//						System.out.println(i2+"("+f2.x+", "+f2.y+") "+i3+"("+f3.x+", "+f3.y+")");
+//						System.out.println(i1+"("+f1.x+", "+f1.y+")");
 						
 						try {
 							Coords e2 = this.rayTrace(f2.x, f2.y, f3.x, f3.y, 3);
@@ -108,33 +110,41 @@ public class QRParser {
 							e2 = this.rayTrace(f1.x, f1.y, f1.x+(f1.x-f2.x), f1.y+(f1.y-f2.y), 3);
 							Coords oneY = new Coords((e2.x-e1.x)/7F, (e2.y-e1.y)/7F);
 							
-							this.qrSize = this.countEdges(f2.x+oneX.x*3F+oneY.x*3F, f2.y+oneX.y*3F+oneY.y*3F, f3.x-oneX.x*3F-oneY.x*3F, f3.y+oneX.y*3F+oneY.y*3F)-1 + 14;
+							this.qrSize = this.countEdges(f2.x+oneX.x*4F+oneY.x*3F, f2.y+oneX.y*4F+oneY.y*3F, f3.x-oneX.x*3F-oneY.x*3F, f3.y+oneX.y*3F+oneY.y*3F) + 14;
 							//System.out.println(this.qrSize + " " + (this.countEdges(f2.x+oneX.x*3F+oneY.x*3F, f2.y+oneX.y*3F+oneY.y*3F, f1.x+oneX.x*3F+oneY.x*3F, f1.y-oneX.y*3F-oneY.y*3F)-1 + 14));
-							if(this.qrSize == this.countEdges(f2.x+oneX.x*3F+oneY.x*3F, f2.y+oneX.y*3F+oneY.y*3F, f1.x+oneX.x*3F+oneY.x*3F, f1.y-oneX.y*3F-oneY.y*3F)-1 + 14) {
-								System.out.println("Size match!");
+							if(this.qrSize == this.countEdges(f2.x+oneX.x*3F+oneY.x*4F, f2.y+oneX.y*3F+oneY.y*4F, f1.x+oneX.x*3F+oneY.x*3F, f1.y-oneX.y*3F-oneY.y*3F) + 14) {
 								this.qr = new boolean[this.qrSize][this.qrSize];
-								float ox = f2.x-oneX.x*3F-oneY.x*3F;
-								float oy = f2.y-oneX.y*3F-oneY.y*3F;
-								float x = ox;
-								float y = oy;
-								this.examined = new boolean[this.width*this.height];
-								for(int j = 0; j < this.qrSize; j++) {
-									for(int i = 0; i < this.qrSize; i++) {
-										int index = ((int)y)*this.width+(int)x;
-										this.examined[index] = true;;
-										this.qr[i][j] = this.pixels[index] > 127;
-										x += oneX.x;
-										y += oneX.y;
+								Coords origo = new Coords(f2.x-oneX.x*3F-oneY.x*3F, f2.y-oneX.y*3F-oneY.y*3F);
+//								Coords topLeftLeftSide = new Coords(f2.x-oneX.x*3F+oneY.x*3F - origo.x, f2.y-oneX.y*3F+oneY.y*3F - origo.y);
+//								Coords topLeftTopSide = new Coords(f2.x+oneX.x*3F+oneY.x - origo.x, f2.x+oneX.x*3F+oneY.x - origo.y);
+								Coords baseX = new Coords(f3.x+oneX.x*3F-oneY.x*3F - origo.x, f3.y+oneX.y*3F-oneY.y*3F - origo.y);
+								Coords baseY = new Coords(f1.x-oneX.x*3F+oneY.x*3F - origo.x, f1.y-oneX.y*3F+oneY.y*3F - origo.y);
+//								System.out.println("deg1: "+(int)Math.abs(MathHelper.atan(topLeftLeftSide.y/topLeftLeftSide.x)-MathHelper.atan(baseY.y/baseY.x)));
+//								System.out.println("deg2: "+(int)Math.abs(MathHelper.atan(topLeftTopSide.y/topLeftTopSide.x)-MathHelper.atan(baseY.y/baseY.x)));
+								
+								//if(Math.abs(MathHelper.atan(topLeftLeftSide.y/topLeftLeftSide.x)-MathHelper.atan(baseY.y/baseY.x)) < 30F
+									//&& Math.abs(MathHelper.atan(topLeftTopSide.y/topLeftTopSide.x)-MathHelper.atan(baseY.y/baseY.x)) < 30F) {
+									System.out.println("Found QR code! It's size is "+this.qrSize+".");
+									this.examined = new boolean[this.width*this.height];
+									for(int j = 0; j < this.qrSize; j++)
+										for(int i = 0; i < this.qrSize; i++) {
+											int index = ((int)(origo.y+baseX.y*i/(this.qrSize-1)+baseY.y*j/(this.qrSize-1)))*this.width+(int)(origo.x+baseX.x*i/(this.qrSize-1)+baseY.x*j/(this.qrSize-1));
+											this.examined[index] = true;
+											this.qr[i][j] = this.pixels[index] < 128;
+										}
+									boolean ok = true;
+									for(int i = 0; i < 7; i++)
+										if(!this.qr[i][0] || !this.qr[0][i])
+											ok = false;
+									if(ok) {
+										System.out.println("The code is ok!");
+										return;
 									}
-									x -= oneX.x*this.qrSize;
-									y -= oneX.y*this.qrSize;
-									x += oneY.x;
-									y += oneY.y;
-								}
-								return;
+								//}
 							}
 						} catch(Exception e) {
-							e.printStackTrace();
+							//e.printStackTrace();
+							System.out.println("HANDLED ERROR!");
 						}
 					}
 	}
@@ -142,10 +152,13 @@ public class QRParser {
 	public BufferedImage getOutputAsImg() {
 		if(this.qr == null)
 			return null;
-		BufferedImage ret = new BufferedImage(this.qrSize, this.qrSize, BufferedImage.TYPE_INT_RGB);
-		for(int i = 0; i < this.qrSize; i++)
-			for(int j = 0; j < this.qrSize; j++)
-				ret.setRGB(i, j, this.qr[i][j] ? Color.white.getRGB() : Color.black.getRGB());
+		BufferedImage ret = new BufferedImage(this.qrSize+4, this.qrSize+4, BufferedImage.TYPE_INT_RGB);
+		for(int i = -2; i < this.qrSize+2; i++)
+			for(int j = -2; j < this.qrSize+2; j++)
+				if(0 <= i && i < this.qrSize && 0 <= j && j < this.qrSize)
+					ret.setRGB(i+2, j+2, this.qr[i][j] ? Color.black.getRGB() : Color.white.getRGB());
+				else
+					ret.setRGB(i+2, j+2, Color.white.getRGB());
 		return ret;
 	}
 	

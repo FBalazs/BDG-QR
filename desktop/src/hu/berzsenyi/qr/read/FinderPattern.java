@@ -2,7 +2,7 @@ package hu.berzsenyi.qr.read;
 
 public class FinderPattern {
 	public int x, y;
-	@Deprecated
+	//@Deprecated
 	public float one;
 	
 	public FinderPattern(int x, int y, float one) {
