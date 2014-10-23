@@ -108,8 +108,8 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 		}
 	}
 	
-	int maxSize = 500;
-	float finderPatternFinderRange = 1F;
+	int maxSize = 720;
+	float finderPatternFinderRange = 0.5F;
 	int finderPatternFinderRange2 = 100;
 	int cannyGausR = 2;
 	float cannyGausT = 1F;
