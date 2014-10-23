@@ -33,7 +33,7 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 
 	int displayWidth, displayHeight;
 	BufferedImage img, imgBlurred, imgSobelMasked;
-	BufferedImage imgEdges/* , imgHough */, imgDebug, imgQR;
+	BufferedImage imgEdges/* , imgHough */, imgDebug;
 
 //	Robot robot;
 	CannyEdgeDetector edgeDetector;
@@ -41,9 +41,9 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	FinderPatternFinder finderPatternFinder;
 	List<FinderPattern> finderPatterns;
 	QRParser parser;
-
-	int qrSize;
-	boolean[][] qrData;
+	
+	List<QRBitmap> qrCodes;
+	BufferedImage[] qrImgs;
 
 	public ReaderApp() {
 		super("QR Reader");
@@ -60,22 +60,27 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	}
 
 	public void process() {
+		System.out.println("Detecting edges...");
 		this.edgeDetector = new CannyEdgeDetector(this.cannyGausR, this.cannyGausT, this.cannyLT, this.cannyHT);
 		this.edgeDetector.setData(this.width, this.height, this.pixels);
 		this.edgeDetector.process();
+		System.out.println("Edge detection complete.");
 		// this.houghTransform = new HoughTransform();
 		// this.houghTransform.setData(this.width, this.height,
 		// this.edgeDetector.getOutput());
 		// this.houghTransform.transform();
+		System.out.println("Finding the finder patterns...");
 		this.finderPatternFinder = new FinderPatternFinder(this.finderPatternFinderRange, this.finderPatternFinderRange2);
 		this.finderPatternFinder.setData(this.width, this.height, this.edgeDetector.getOutput());
 		this.finderPatternFinder.process();
 		this.finderPatterns = this.finderPatternFinder.getOutput();
+		System.out.println("Found "+this.finderPatterns.size()+" finder patterns.");
+		System.out.println("Parsing qr codes...");
 		this.parser = new QRParser();
 		this.parser.setData(this.width, this.height, this.pixels, this.edgeDetector.getOutput(), this.finderPatterns);
 		this.parser.parse();
-		this.qrSize = this.parser.getOutputSize();
-		this.qrData = this.parser.getOutput();
+		this.qrCodes = this.parser.getOutput();
+		System.out.println("Parsing done.");
 	}
 
 	public void postProcess() {
@@ -83,7 +88,9 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 		this.imgSobelMasked = this.edgeDetector.getSobelMasked();
 		this.imgEdges = this.edgeDetector.getTraced();
 		// this.imgHough = this.houghTransform.getOutputAsImg();
-		this.imgQR = this.parser.getOutputAsImg();
+		this.qrImgs = new BufferedImage[this.qrCodes.size()];
+		for(int i = 0; i < this.qrCodes.size(); i++)
+			this.qrImgs[i] = this.qrCodes.get(i).getAsImage();
 		this.imgDebug = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = this.imgDebug.createGraphics();
 		g.drawImage(this.imgBlurred, 0, 0, this.width, this.height, null);
@@ -102,7 +109,7 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	}
 	
 	int maxSize = 500;
-	float finderPatternFinderRange = 0.5F;
+	float finderPatternFinderRange = 1F;
 	int finderPatternFinderRange2 = 100;
 	int cannyGausR = 2;
 	float cannyGausT = 1F;
@@ -170,7 +177,12 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 		// g.drawImage(this.imgHough, this.displayWidth, this.displayHeight,
 		// null);
 		g.drawImage(this.imgDebug, this.displayWidth, this.displayHeight, this.displayWidth, this.displayHeight, null);
-		g.drawImage(this.imgQR, this.displayWidth * 2, this.displayHeight, this.displayHeight, this.displayHeight, null);
+		int s;
+		for(s = 1; s*s < this.qrImgs.length; s++);
+		int whm = Math.min(this.displayWidth, this.displayHeight);
+		for(int i = 0; i < this.qrImgs.length; i++)
+			g.drawImage(this.qrImgs[i], this.displayWidth*2 + whm*(i%s)/s, this.displayHeight + whm*(i/s)/s, whm/s, whm/s, null);
+		//g.drawImage(this.imgQR, this.displayWidth * 2, this.displayHeight, this.displayHeight, this.displayHeight, null);
 
 		g.dispose();
 		this.getBufferStrategy().show();

@@ -1,5 +1,5 @@
 img = 
-maxSize = 500
+maxSize = 720
 finderPatternFinderRange = 0.5
 finderPatternFinderRange2 = 100
 cannyGausR = 2
