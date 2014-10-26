@@ -1,8 +1,10 @@
 img = 
-maxSize = 720
-finderPatternFinderRange = 0.5
-finderPatternFinderRange2 = 100
-cannyGausR = 2
-cannyGausT = 1.0
-cannyLT = 150.0
-cannyHT = 200.0
+maxSize = 480
+finderPatternFinderRange = 0.4
+finderPatternFinderRange2 = 0.25
+finderPatternFinderRange3 = 0.33
+aligmentPatternFinderRange = 0.25
+aligmentPatternFinderRange2 = 0.2
+aligmentPatternFinderRange3 = 0.25
+gausRadius = 1
+gausThreshold = 1.0

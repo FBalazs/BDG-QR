@@ -1,11 +1,11 @@
 package hu.berzsenyi.qr.read;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-//import java.awt.Robot;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
@@ -22,27 +22,25 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 
 	public static void main(String[] args){
 		instance = new ReaderApp();
-		instance.setVisible(true);
 		new Thread(instance, "QR Thread").start();
 	}
 	
 	Configuration config;
 	
 	int width, height;
-	int[] pixels;
-
-	int displayWidth, displayHeight;
-	BufferedImage img, imgBlurred, imgSobelMasked;
-	BufferedImage imgEdges/* , imgHough */, imgDebug;
-
-//	Robot robot;
-	CannyEdgeDetector edgeDetector;
-	// HoughTransform houghTransform;
+	int[] grayScale;
+	GaussianBlur blur;
+	BitExtractor bitExtractor;
+	boolean[][] bitmap;
 	FinderPatternFinder finderPatternFinder;
-	List<FinderPattern> finderPatterns;
-	QRParser parser;
-	
+	List<Vector2F> finderPatterns;
+	AligmentPatternFinder aligmentPatternFinder;
+	List<Vector2F> aligmentPatterns;
+	QRParser qrParser;
 	List<QRBitmap> qrCodes;
+	
+	int displayWidth, displayHeight;
+	BufferedImage img, imgBlackWhite, imgDebug;
 	BufferedImage[] qrImgs;
 
 	public ReaderApp() {
@@ -51,84 +49,114 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	}
 
 	public void preProcess() {
-		this.pixels = new int[this.width * this.height];
+		this.grayScale = new int[this.width * this.height];
 		for (int x = 0; x < this.width; x++)
 			for (int y = 0; y < this.height; y++) {
 				int rgb = this.img.getRGB(x, y);
-				this.pixels[y * this.width + x] = (((rgb >> 16) & 255) + ((rgb >> 8) & 255) + (rgb & 255)) / 3;
+				this.grayScale[y * this.width + x] = (((rgb >> 16) & 255) + ((rgb >> 8) & 255) + (rgb & 255)) / 3;
 			}
 	}
 
 	public void process() {
-		System.out.println("Detecting edges...");
-		this.edgeDetector = new CannyEdgeDetector(this.cannyGausR, this.cannyGausT, this.cannyLT, this.cannyHT);
-		this.edgeDetector.setData(this.width, this.height, this.pixels);
-		this.edgeDetector.process();
-		System.out.println("Edge detection complete.");
-		// this.houghTransform = new HoughTransform();
-		// this.houghTransform.setData(this.width, this.height,
-		// this.edgeDetector.getOutput());
-		// this.houghTransform.transform();
-		System.out.println("Finding the finder patterns...");
-		this.finderPatternFinder = new FinderPatternFinder(this.finderPatternFinderRange, this.finderPatternFinderRange2);
-		this.finderPatternFinder.setData(this.width, this.height, this.edgeDetector.getOutput());
-		this.finderPatternFinder.process();
-		this.finderPatterns = this.finderPatternFinder.getOutput();
-		System.out.println("Found "+this.finderPatterns.size()+" finder patterns.");
-		System.out.println("Parsing qr codes...");
-		this.parser = new QRParser();
-		this.parser.setData(this.width, this.height, this.pixels, this.edgeDetector.getOutput(), this.finderPatterns);
-		this.parser.parse();
-		this.qrCodes = this.parser.getOutput();
-		System.out.println("Parsing done.");
+		if(this.gausRadius != 0) {
+			this.blur = new GaussianBlur(this.gausRadius, this.gausThreshold);
+			this.grayScale = this.blur.blur(this.width, this.height, this.grayScale);
+		}
+		
+		this.bitExtractor = new BitExtractor();
+		this.bitmap = this.bitExtractor.extract(this.width, this.height, this.grayScale);
+		
+		this.finderPatternFinder = new FinderPatternFinder(this.finderPatternFinderRange, this.finderPatternFinderRange2, this.finderPatternFinderRange3);
+		this.finderPatterns = this.finderPatternFinder.findPatterns(this.width, this.height, this.bitmap);
+		
+		this.aligmentPatternFinder = new AligmentPatternFinder(this.aligmentPatternFinderRange, this.aligmentPatternFinderRange2, this.aligmentPatternFinderRange3);
+		this.aligmentPatterns = this.aligmentPatternFinder.findPatterns(this.width, this.height, this.bitmap);
+		
+		this.qrParser = new QRParser();
+		this.qrCodes = this.qrParser.parse(this.width, this.height, this.bitmap, this.finderPatterns, this.aligmentPatterns);
+		
+//		System.out.println("Finding the finder patterns...");
+//		this.finderPatternFinder = new FinderPatternFinder(this.finderPatternFinderRange, this.finderPatternFinderRange2);
+//		this.finderPatternFinder.setData(this.width, this.height, this.edgeDetector.getOutput());
+//		this.finderPatternFinder.process();
+//		this.finderPatterns = this.finderPatternFinder.getOutput();
+//		System.out.println("Found "+this.finderPatterns.size()+" finder patterns.");
+//		System.out.println("Parsing qr codes...");
+//		this.parser = new QRParser();
+//		this.parser.setData(this.width, this.height, this.pixels, this.edgeDetector.getOutput(), this.finderPatterns);
+//		this.parser.parse();
+//		this.qrCodes = this.parser.getOutput();
+//		System.out.println("Parsing done.");
 	}
 
 	public void postProcess() {
-		this.imgBlurred = this.edgeDetector.getBlured();
-		this.imgSobelMasked = this.edgeDetector.getSobelMasked();
-		this.imgEdges = this.edgeDetector.getTraced();
-		// this.imgHough = this.houghTransform.getOutputAsImg();
+		this.imgBlackWhite = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
+		for(int x = 0; x < this.width; x++)
+			for(int y = 0; y < this.height; y++)
+				this.imgBlackWhite.setRGB(x, y, this.bitmap[x][y] ? Color.white.getRGB() : Color.black.getRGB());
+		
+		this.imgDebug = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = this.imgDebug.createGraphics();
+		g.drawImage(this.imgBlackWhite, 0, 0, this.width, this.height, null);
+		
+		g.setStroke(new BasicStroke(3F));
+		g.setColor(Color.blue);
+		for(ShapeF shape : this.qrParser.getPositions())
+			for(int i = 0; i < shape.vertices.length; i++)
+				g.drawLine(Math.round(shape.vertices[i].x), Math.round(shape.vertices[i].y), Math.round(shape.vertices[(i+1)%shape.vertices.length].x), Math.round(shape.vertices[(i+1)%shape.vertices.length].y));
+		
+		g.setStroke(new BasicStroke(1F));
+		
+//		g.setColor(new Color(0F, 1F, 0F, 0.5F));
+//		for(LineF line : this.aligmentPatternFinder.getHorizontalLines())
+//			g.fillRect((int)line.v1.x, (int)line.v1.y, (int)(line.v2.x-line.v1.x)+1, (int)(line.v2.y-line.v1.y)+1);
+//		g.setColor(new Color(0F, 0F, 1F, 0.5F));
+//		for(LineF line : this.aligmentPatternFinder.getVerticalLines())
+//			g.fillRect((int)line.v1.x, (int)line.v1.y, (int)(line.v2.x-line.v1.x)+1, (int)(line.v2.y-line.v1.y)+1);
+		
+//		g.setColor(new Color(1F, 1F, 0F, 0.5F));
+//		for(LineF line : this.finderPatternFinder.getHorizontalLines())
+//			g.fillRect((int)line.v1.x, (int)line.v1.y, (int)(line.v2.x-line.v1.x)+1, (int)(line.v2.y-line.v1.y)+1);
+//		g.setColor(new Color(1F, 0.5F, 0F, 0.5F));
+//		for(LineF line : this.finderPatternFinder.getVerticalLines())
+//			g.fillRect((int)line.v1.x, (int)line.v1.y, (int)(line.v2.x-line.v1.x)+1, (int)(line.v2.y-line.v1.y)+1);
+		
+		g.setColor(new Color(0F, 0.5F, 1F, 1F));
+		for(Vector2F vec : this.aligmentPatternFinder.getResult())
+			g.fillOval(Math.round(vec.x)-3, Math.round(vec.y)-3, 7, 7);
+		
+		g.setColor(new Color(1F, 0F, 0F, 1F));
+		for(Vector2F vec : this.finderPatternFinder.getResult())
+			g.fillOval(Math.round(vec.x)-10, Math.round(vec.y)-10, 21, 21);
+		
 		this.qrImgs = new BufferedImage[this.qrCodes.size()];
 		for(int i = 0; i < this.qrCodes.size(); i++)
 			this.qrImgs[i] = this.qrCodes.get(i).getAsImage();
-		this.imgDebug = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
-		Graphics2D g = this.imgDebug.createGraphics();
-		g.drawImage(this.imgBlurred, 0, 0, this.width, this.height, null);
-		g.setColor(Color.red);
-		for (FinderPattern pattern : this.finderPatterns)
-			for (int i = 0; i < 3; i++)
-				g.drawRect((int) (pattern.x - pattern.one * 7 / 2) - i, (int) (pattern.y - pattern.one * 7 / 2) - i,
-						(int) (pattern.one * 7) + 2 * i, (int) (pattern.one * 7) + 2 * i);
-		if(this.parser.examined != null) {
-			g.setColor(Color.green);
-			for (int i = 0; i < this.width; i++)
-				for (int j = 0; j < this.height; j++)
-					if (this.parser.examined[j * this.width + i])
-						g.fillArc(i - 1, j - 1, 3, 3, 0, 360);
-		}
 	}
 	
-	int maxSize = 720;
-	float finderPatternFinderRange = 0.5F;
-	int finderPatternFinderRange2 = 100;
-	int cannyGausR = 2;
-	float cannyGausT = 1F;
-	float cannyLT = 150F;
-	float cannyHT = 250F;
+	int maxSize = 480;
+	float finderPatternFinderRange = 0.4F;
+	float finderPatternFinderRange2 = 0.25F;
+	float finderPatternFinderRange3 = 0.33F;
+	float aligmentPatternFinderRange = 0.1F;
+	float aligmentPatternFinderRange2 = 0.1F;
+	float aligmentPatternFinderRange3 = 0.25F;
+	int gausRadius = 1;
+	float gausThreshold = 1F;
 	
 	public void init() throws Exception {
-//		this.robot = new Robot();
-		
 		this.config = new Configuration("config.txt");
 		this.config.read();
 		String file = this.config.getValue("img", "");
 		this.maxSize = Integer.parseInt(this.config.getValue("maxSize", ""+this.maxSize));
 		this.finderPatternFinderRange = Float.parseFloat(this.config.getValue("finderPatternFinderRange", ""+this.finderPatternFinderRange));
-		this.finderPatternFinderRange2 = Integer.parseInt(this.config.getValue("finderPatternFinderRange2", ""+this.finderPatternFinderRange2));
-		this.cannyGausR = Integer.parseInt(this.config.getValue("cannyGausR", ""+this.cannyGausR));
-		this.cannyGausT = Float.parseFloat(this.config.getValue("cannyGausT", ""+this.cannyGausT));
-		this.cannyLT = Float.parseFloat(this.config.getValue("cannyLT", ""+this.cannyLT));
-		this.cannyHT = Float.parseFloat(this.config.getValue("cannyHT", ""+this.cannyHT));
+		this.finderPatternFinderRange2 = Float.parseFloat(this.config.getValue("finderPatternFinderRange2", ""+this.finderPatternFinderRange2));
+		this.finderPatternFinderRange3 = Float.parseFloat(this.config.getValue("finderPatternFinderRange3", ""+this.finderPatternFinderRange3));
+		this.aligmentPatternFinderRange = Float.parseFloat(this.config.getValue("aligmentPatternFinderRange", ""+this.aligmentPatternFinderRange));
+		this.aligmentPatternFinderRange2 = Float.parseFloat(this.config.getValue("aligmentPatternFinderRange2", ""+this.aligmentPatternFinderRange2));
+		this.aligmentPatternFinderRange3 = Float.parseFloat(this.config.getValue("aligmentPatternFinderRange3", ""+this.aligmentPatternFinderRange3));
+		this.gausRadius = Integer.parseInt(this.config.getValue("gausRadius", ""+this.gausRadius));
+		this.gausThreshold = Float.parseFloat(this.config.getValue("gausThreshold", ""+this.gausThreshold));
 		this.config.write();
 		
 		if(file.equals(""))
@@ -146,7 +174,7 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 		this.displayWidth = this.width;
 		this.displayHeight = this.height;
 
-		this.setSize(this.width * 3, this.height * 2);
+		this.setSize(this.width * 2, this.height * 2);
 		// this.setResizable(false);
 
 		this.preProcess();
@@ -155,6 +183,8 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 		time = System.currentTimeMillis() - time;
 		this.postProcess();
 		this.setTitle("QR Reader - " + time + " ms");
+		
+		this.setVisible(true);
 	}
 
 	public void render() {
@@ -162,30 +192,24 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 			this.createBufferStrategy(2);
 		Graphics g = this.getBufferStrategy().getDrawGraphics();
 
-		if (this.getWidth() / 3 < this.displayWidth || this.getHeight() / 2 < this.displayHeight
-				|| (this.displayWidth < this.getWidth() / 3 && this.displayHeight < this.getHeight() / 2)) {
-			float ratio = Math.min(this.getWidth() / 3 / (float) this.displayWidth, this.getHeight() / 2 / (float) this.displayHeight);
+		if (this.getWidth() / 2 < this.displayWidth || this.getHeight() / 2 < this.displayHeight
+				|| (this.displayWidth < this.getWidth() / 2 && this.displayHeight < this.getHeight() / 2)) {
+			float ratio = Math.min(this.getWidth() / 2 / (float) this.displayWidth, this.getHeight() / 2 / (float) this.displayHeight);
 			this.displayWidth *= ratio;
 			this.displayHeight *= ratio;
 		}
 		g.drawImage(this.img, 0, 0, this.displayWidth, this.displayHeight, null);
-		g.drawImage(this.imgBlurred, this.displayWidth, 0, this.displayWidth, this.displayHeight, null);
-		g.drawImage(this.imgSobelMasked, this.displayWidth * 2, 0, this.displayWidth, this.displayHeight, null);
-		g.drawImage(this.imgEdges, 0, this.displayHeight, this.displayWidth, this.displayHeight, null);
-		// g.drawImage(this.imgHough, this.displayWidth, this.displayHeight,
-		// this.displayWidth, this.displayHeight, null);
-		// g.drawImage(this.imgHough, this.displayWidth, this.displayHeight,
-		// null);
-		g.drawImage(this.imgDebug, this.displayWidth, this.displayHeight, this.displayWidth, this.displayHeight, null);
+		g.drawImage(this.imgBlackWhite, this.displayWidth, 0, this.displayWidth, this.displayHeight, null);
+		g.drawImage(this.imgDebug, 0, this.displayHeight, this.displayWidth, this.displayHeight, null);
 		int s;
 		for(s = 1; s*s < this.qrImgs.length; s++);
 		int whm = Math.min(this.displayWidth, this.displayHeight);
 		for(int i = 0; i < this.qrImgs.length; i++)
-			g.drawImage(this.qrImgs[i], this.displayWidth*2 + whm*(i%s)/s, this.displayHeight + whm*(i/s)/s, whm/s, whm/s, null);
-		//g.drawImage(this.imgQR, this.displayWidth * 2, this.displayHeight, this.displayHeight, this.displayHeight, null);
-
+			g.drawImage(this.qrImgs[i], this.displayWidth + whm*(i%s)/s, this.displayHeight + whm*(i/s)/s, whm/s, whm/s, null);
+		
 		g.dispose();
-		this.getBufferStrategy().show();
+		if(this.getBufferStrategy() != null)
+			this.getBufferStrategy().show();
 	}
 
 	@Override
