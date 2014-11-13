@@ -55,7 +55,7 @@ public class FinderPatternFinder {
 			for(int h2 = h1+1; h2 < this.patternLinesH.size(); h2++)
 				if(this.patternLinesH.get(h1).v2.y+1 == this.patternLinesH.get(h2).v1.y
 					&& MathHelper.equalRel(this.patternLinesH.get(h1).v2.x-this.patternLinesH.get(h1).v1.x, this.patternLinesH.get(h2).v2.x-this.patternLinesH.get(h2).v1.x, this.range2)
-					&& MathHelper.equal(this.patternLinesH.get(h1).getCenter().x, this.patternLinesH.get(h2).getCenter().x, 3F)) {
+					&& MathHelper.equal(this.patternLinesH.get(h1).getCenter().x, this.patternLinesH.get(h2).getCenter().x, 5F)) {
 					LineF newLine = new LineF(Math.min(this.patternLinesH.get(h1).v1.x, this.patternLinesH.get(h2).v1.x), this.patternLinesH.get(h1).v1.y, Math.max(this.patternLinesH.get(h1).v2.x, this.patternLinesH.get(h2).v2.x), this.patternLinesH.get(h2).v2.y);
 //					float width1 = this.patternLinesH.get(h1).v2.y-this.patternLinesH.get(h1).v1.y+1;
 //					float width2 = this.patternLinesH.get(h2).v2.y-this.patternLinesH.get(h2).v1.y+1;
@@ -95,7 +95,7 @@ public class FinderPatternFinder {
 			for(int v2 = v1+1; v2 < this.patternLinesV.size(); v2++)
 				if(this.patternLinesV.get(v1).v2.x+1 == this.patternLinesV.get(v2).v1.x
 					&& MathHelper.equalRel(this.patternLinesV.get(v1).v2.y-this.patternLinesV.get(v1).v1.y, this.patternLinesV.get(v2).v2.y-this.patternLinesV.get(v2).v1.y, this.range2)
-					&& MathHelper.equal(this.patternLinesV.get(v1).getCenter().y, this.patternLinesV.get(v2).getCenter().y, 3F)) {
+					&& MathHelper.equal(this.patternLinesV.get(v1).getCenter().y, this.patternLinesV.get(v2).getCenter().y, 5F)) {
 					LineF newLine = new LineF(this.patternLinesV.get(v1).v1.x, Math.min(this.patternLinesV.get(v1).v1.y, this.patternLinesV.get(v2).v1.y), this.patternLinesV.get(v2).v2.x, Math.max(this.patternLinesV.get(v1).v2.y, this.patternLinesV.get(v2).v2.y));
 //					float width1 = this.patternLinesV.get(v1).v2.x-this.patternLinesV.get(v1).v1.x+1;
 //					float width2 = this.patternLinesV.get(v2).v2.x-this.patternLinesV.get(v2).v1.x+1;

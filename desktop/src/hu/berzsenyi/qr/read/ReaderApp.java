@@ -138,8 +138,8 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	float finderPatternFinderRange = 0.4F;
 	float finderPatternFinderRange2 = 0.25F;
 	float finderPatternFinderRange3 = 0.33F;
-	float aligmentPatternFinderRange = 0.1F;
-	float aligmentPatternFinderRange2 = 0.1F;
+	float aligmentPatternFinderRange = 0.25F;
+	float aligmentPatternFinderRange2 = 0.2F;
 	float aligmentPatternFinderRange3 = 0.25F;
 	int gausRadius = 1;
 	float gausThreshold = 1F;
@@ -188,28 +188,31 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	}
 
 	public void render() {
-		if (this.getBufferStrategy() == null)
-			this.createBufferStrategy(2);
-		Graphics g = this.getBufferStrategy().getDrawGraphics();
+		try {
+			if (this.getBufferStrategy() == null)
+				this.createBufferStrategy(2);
+			Graphics g = this.getBufferStrategy().getDrawGraphics();
 
-		if (this.getWidth() / 2 < this.displayWidth || this.getHeight() / 2 < this.displayHeight
-				|| (this.displayWidth < this.getWidth() / 2 && this.displayHeight < this.getHeight() / 2)) {
-			float ratio = Math.min(this.getWidth() / 2 / (float) this.displayWidth, this.getHeight() / 2 / (float) this.displayHeight);
-			this.displayWidth *= ratio;
-			this.displayHeight *= ratio;
-		}
-		g.drawImage(this.img, 0, 0, this.displayWidth, this.displayHeight, null);
-		g.drawImage(this.imgBlackWhite, this.displayWidth, 0, this.displayWidth, this.displayHeight, null);
-		g.drawImage(this.imgDebug, 0, this.displayHeight, this.displayWidth, this.displayHeight, null);
-		int s;
-		for(s = 1; s*s < this.qrImgs.length; s++);
-		int whm = Math.min(this.displayWidth, this.displayHeight);
-		for(int i = 0; i < this.qrImgs.length; i++)
-			g.drawImage(this.qrImgs[i], this.displayWidth + whm*(i%s)/s, this.displayHeight + whm*(i/s)/s, whm/s, whm/s, null);
-		
-		g.dispose();
-		if(this.getBufferStrategy() != null)
+			if (this.getWidth() / 2 < this.displayWidth || this.getHeight() / 2 < this.displayHeight
+					|| (this.displayWidth < this.getWidth() / 2 && this.displayHeight < this.getHeight() / 2)) {
+				float ratio = Math.min(this.getWidth() / 2 / (float) this.displayWidth, this.getHeight() / 2 / (float) this.displayHeight);
+				this.displayWidth *= ratio;
+				this.displayHeight *= ratio;
+			}
+			g.drawImage(this.img, 0, 0, this.displayWidth, this.displayHeight, null);
+			g.drawImage(this.imgBlackWhite, this.displayWidth, 0, this.displayWidth, this.displayHeight, null);
+			g.drawImage(this.imgDebug, 0, this.displayHeight, this.displayWidth, this.displayHeight, null);
+			int s;
+			for(s = 1; s*s < this.qrImgs.length; s++);
+			int whm = Math.min(this.displayWidth, this.displayHeight);
+			for(int i = 0; i < this.qrImgs.length; i++)
+				g.drawImage(this.qrImgs[i], this.displayWidth + whm*(i%s)/s, this.displayHeight + whm*(i/s)/s, whm/s, whm/s, null);
+			
+			g.dispose();
 			this.getBufferStrategy().show();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

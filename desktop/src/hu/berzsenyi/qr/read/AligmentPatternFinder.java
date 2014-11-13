@@ -123,7 +123,7 @@ public class AligmentPatternFinder {
 						int l = 1;
 						int clength = 1;
 						boolean ppixel = this.bitmap[x][y];
-						while(0 <= l) {
+						while(0 <= l && 0 <= x && x < this.width &&  0 <= y && y < this.height) {
 							if(this.bitmap[x][y] == ppixel)
 								clength++;
 							else {
@@ -140,7 +140,7 @@ public class AligmentPatternFinder {
 						l = 2;
 						clength = 1;
 						ppixel = this.bitmap[x][y];
-						while(l < 4) {
+						while(l < 4 && 0 <= x && x < this.width &&  0 <= y && y < this.height) {
 							if(this.bitmap[x][y] == ppixel)
 								clength++;
 							else {

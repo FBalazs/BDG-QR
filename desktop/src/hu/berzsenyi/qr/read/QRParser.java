@@ -198,7 +198,8 @@ public class QRParser {
 						int versionX = Math.round((sizeX-17)/4F);
 						int versionY = Math.round((sizeY-17)/4F);
 						System.out.println("versionX="+versionX+" versionY="+versionY);
-						
+//						versionX = (versionX+versionY)/2;
+//						versionY = versionX;
 						if(versionX == versionY) {
 							int version = versionX;
 							int size = version*4 + 17;
@@ -257,16 +258,13 @@ public class QRParser {
 								for(int j = 2; j <= 4; j++)
 									if(!qr.bitmap[i][j])
 										ok = false;
-//							ok = true;
+							ok = true;
 							if(ok) {
 								System.out.println("Found a "+size+"x"+size+" qr code!");
 //								this.qrPositions.add(new ShapeF(new Vector2F[]{innerTopLeft, innerBottomLeft, innerBottomRight, innerTopRight}));
 								this.qrPositions.add(new ShapeF(new Vector2F[]{origin, origin.clone().add(baseY1), origin.clone().add(baseY1).add(baseX2), origin.clone().add(baseX1)}));
 								this.qrCodes.add(qr);
 							}
-//							this.qrCodes.add(qr);
-//							this.qrPositions.add(new ShapeF(new Vector2F[]{innerTopLeft, innerBottomLeft, innerBottomRight, innerTopRight}));
-//							this.qrPositions.add(new ShapeF(new Vector2F[]{origin, origin.clone().add(baseY1), origin.clone().add(baseY1).add(baseX2), origin.clone().add(baseX1)}));
 						}
 					} catch(Exception e) {
 						e.printStackTrace();
