@@ -48,7 +48,7 @@ public class GaussianBlur {
 		return this.blured;
 	}
 	
-	public int[] getResult() {
+	public int[] getBlured() {
 		return this.blured;
 	}
 }

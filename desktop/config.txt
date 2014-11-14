@@ -1,5 +1,5 @@
 img = 
-maxSize = 480
+maxSize = 1920
 finderPatternFinderRange = 0.4
 finderPatternFinderRange2 = 0.25
 finderPatternFinderRange3 = 0.33

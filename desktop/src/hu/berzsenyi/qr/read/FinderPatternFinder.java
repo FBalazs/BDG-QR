@@ -127,7 +127,7 @@ public class FinderPatternFinder {
 		return this.patterns;
 	}
 	
-	public List<Vector2F> getResult() {
+	public List<Vector2F> getPatterns() {
 		return this.patterns;
 	}
 	

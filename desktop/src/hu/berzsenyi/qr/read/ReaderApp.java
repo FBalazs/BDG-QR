@@ -30,6 +30,8 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 	int width, height;
 	int[] grayScale;
 	GaussianBlur blur;
+	EdgeDetector edgeDetector;
+	boolean[][] edgeMap;
 	BitExtractor bitExtractor;
 	boolean[][] bitmap;
 	FinderPatternFinder finderPatternFinder;
@@ -62,6 +64,9 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 			this.blur = new GaussianBlur(this.gausRadius, this.gausThreshold);
 			this.grayScale = this.blur.blur(this.width, this.height, this.grayScale);
 		}
+		
+		this.edgeDetector = new EdgeDetector();
+		this.edgeMap = this.edgeDetector.detect(this.width, this.height, this.grayScale);
 		
 		this.bitExtractor = new BitExtractor();
 		this.bitmap = this.bitExtractor.extract(this.width, this.height, this.grayScale);
@@ -122,11 +127,11 @@ public class ReaderApp extends Frame implements WindowListener, Runnable {
 //			g.fillRect((int)line.v1.x, (int)line.v1.y, (int)(line.v2.x-line.v1.x)+1, (int)(line.v2.y-line.v1.y)+1);
 		
 		g.setColor(new Color(0F, 0.5F, 1F, 1F));
-		for(Vector2F vec : this.aligmentPatternFinder.getResult())
+		for(Vector2F vec : this.aligmentPatternFinder.getPatterns())
 			g.fillOval(Math.round(vec.x)-3, Math.round(vec.y)-3, 7, 7);
 		
 		g.setColor(new Color(1F, 0F, 0F, 1F));
-		for(Vector2F vec : this.finderPatternFinder.getResult())
+		for(Vector2F vec : this.finderPatternFinder.getPatterns())
 			g.fillOval(Math.round(vec.x)-10, Math.round(vec.y)-10, 21, 21);
 		
 		this.qrImgs = new BufferedImage[this.qrCodes.size()];

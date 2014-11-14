@@ -276,7 +276,7 @@ public class QRParser {
 		return this.qrCodes;
 	}
 	
-	public List<QRBitmap> getResult() {
+	public List<QRBitmap> getCodes() {
 		return this.qrCodes;
 	}
 	
