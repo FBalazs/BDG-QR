@@ -76,7 +76,7 @@ public class QRReader {
 //	}
 	
 	public List<Vector2F> getFinderPatterns() {
-		return this.getFinderPatterns();
+		return this.finderPatterns;
 	}
 	
 	public List<Vector2F> getAligmentPatterns() {

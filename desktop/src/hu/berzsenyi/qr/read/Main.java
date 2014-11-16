@@ -1,5 +1,6 @@
 package hu.berzsenyi.qr.read;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -15,7 +16,7 @@ import javax.swing.JOptionPane;
 public class Main {
 	static Configuration config;
 	static String imgPath = "";
-	static int maxSize = 1920;
+	static int maxSize = 640;
 	static BufferedImage img;
 	static int width, height;
 	static int[] grayScale;
@@ -53,7 +54,9 @@ public class Main {
 	static void writeImages() throws Exception {
 		new File("out").mkdir();
 		
-		BufferedImage tmpImg = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_BINARY);
+		ImageIO.write(img, "png", new File("out/original.png"));
+		
+		BufferedImage tmpImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		for(int x = 0; x < width; x++)
 			for(int y = 0; y < height; y++)
 				tmpImg.setRGB(x, y, reader.getBitExtractor().getBitmap()[x][y] ? Color.white.getRGB() : Color.black.getRGB());
@@ -64,14 +67,26 @@ public class Main {
 //				tmpImg.setRGB(x, y, reader.getEdgeMap()[x][y] ? Color.white.getRGB() : Color.black.getRGB());
 //		ImageIO.write(tmpImg, "png", new File("out/edgemap.png"));
 		
-		for(int c = 0; c < reader.getCodes().size(); c++) {
-			QRBitmap qr = reader.getCodes().get(c);
-			tmpImg = new BufferedImage(qr.size, qr.size, BufferedImage.TYPE_BYTE_BINARY);
-			for(int x = 0; x < qr.size; x++)
-				for(int y = 0; y < qr.size; y++)
-					tmpImg.setRGB(x, y, qr.bitmap[x][y] ? Color.black.getRGB() : Color.white.getRGB());
-			ImageIO.write(tmpImg, "png", new File("out/qr"+c+".png"));
-		}
+		Graphics2D g = tmpImg.createGraphics();
+		g.setColor(new Color(1F, 1F, 0F, 0.75F));
+		for(Vector2F vec : reader.getFinderPatterns())
+			g.fillOval((int)vec.x-10, (int)vec.y-10, 21, 21);
+		g.setColor(new Color(0F, 1F, 0F, 0.75F));
+		for(Vector2F vec : reader.getAligmentPatterns())
+			g.fillOval((int)vec.x-5, (int)vec.y-5, 11, 11);
+		g.setColor(new Color(1F, 0.5F, 0F, 0.75F));
+		g.setStroke(new BasicStroke(3F));
+		for(ShapeF shape : reader.getQRParser().getPositions())
+			for(int l = 0; l < shape.vertices.length; l++)
+				g.drawLine((int)shape.vertices[l].x, (int)shape.vertices[l].y, (int)shape.vertices[(l+1)%shape.vertices.length].x, (int)shape.vertices[(l+1)%shape.vertices.length].y);
+		g.setColor(new Color(1F, 0F, 0F, 0.75F));
+		for(QRBitmap qr : reader.getCodes())
+			for(Vector2F vec : qr.from)
+				g.fillOval((int)vec.x-1, (int)vec.y-1, 3, 3);
+		ImageIO.write(tmpImg, "png", new File("out/marked.png"));
+		
+		for(int c = 0; c < reader.getCodes().size(); c++)
+			ImageIO.write(reader.getCodes().get(c).getAsImage(), "png", new File("out/qr"+c+".png"));
 	}
 	
 	public static void main(String[] args) {

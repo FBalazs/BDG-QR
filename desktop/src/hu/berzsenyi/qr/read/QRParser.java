@@ -11,10 +11,6 @@ public class QRParser {
 	private List<ShapeF> qrPositions;
 	private List<QRBitmap> qrCodes;
 	
-	public QRParser() {
-		
-	}
-	
 //	public Vector2F findAligmentPattern(int cx, int cy, int radius) {
 //		System.out.println("findAligmentPattern("+cx+", "+cy+", "+radius+")");
 //		
@@ -214,8 +210,8 @@ public class QRParser {
 							
 							Vector2F origin = Vector2F.add(patternTopLeft, Vector2F.linearComb(baseX1, baseY1, -3.5F/size, -3.5F/size));
 							
-							Vector2F innerTopLeft = Vector2F.add(patternTopLeft, Vector2F.linearComb(baseX1, baseY1, 3F/size, 3F/size));
-							Vector2F innerTopRight = Vector2F.add(patternTopRight, Vector2F.linearComb(baseX1, baseY1, -3F/size, 3F/size));
+//							Vector2F innerTopLeft = Vector2F.add(patternTopLeft, Vector2F.linearComb(baseX1, baseY1, 3F/size, 3F/size));
+//							Vector2F innerTopRight = Vector2F.add(patternTopRight, Vector2F.linearComb(baseX1, baseY1, -3F/size, 3F/size));
 							Vector2F innerBottomLeft = Vector2F.add(patternBottomLeft, Vector2F.linearComb(baseX1, baseY1, 3F/size, -3F/size));
 							Vector2F innerBottomRight = Vector2F.add(origin, Vector2F.linearComb(baseX1, baseY1, (size-6.5F)/size, (size-6.5F)/size));
 							
@@ -229,7 +225,7 @@ public class QRParser {
 //									innerBottomRight = closest;
 //									System.out.println("Found aligment pattern!");
 //								}
-								if(closest != null) {
+								if(closest != null && new LineF(closest, innerBottomRight).getLengthSquare() < 50F*50F) {
 									innerBottomRight = closest;
 									System.out.println("Found aligment pattern!");
 								}
@@ -237,15 +233,22 @@ public class QRParser {
 							System.out.println("innerBottomRight=("+innerBottomRight.x+", "+innerBottomRight.y+")");
 							
 							Vector2F baseX2 = Vector2F.sub(innerBottomRight, innerBottomLeft).scale(size/(float)(size-13));
-							Vector2F baseY2 = Vector2F.sub(innerBottomRight, innerTopRight).scale(size/(float)(size-13));
+//							Vector2F baseY2 = Vector2F.sub(innerBottomRight, innerTopRight).scale(size/(float)(size-13));
+							
+							Vector2F topLeft = origin.clone();
+							Vector2F bottomLeft = Vector2F.add(topLeft, baseY1);
+							Vector2F bottomRight = Vector2F.add(bottomLeft, baseX2);
+							Vector2F topRight = Vector2F.add(topLeft, baseX1);
 							
 							QRBitmap qr = new QRBitmap(size);
 							for(int x = 0; x < size; x++)
 								for(int y = 0; y < size; y++) {
-									Vector2F baseX = Vector2F.linearComb(baseX1, baseX2, y/(float)(size-1), (size-1-y)/(float)(size-1));
-									Vector2F baseY = Vector2F.linearComb(baseY1, baseY2, x/(float)(size-1), (size-1-x)/(float)(size-1));
-									Vector2F pos = Vector2F.linearComb(baseX, baseY, (x+0.5F)/size, (y+0.5F)/size).add(origin);
+//									Vector2F baseX = Vector2F.linearComb(baseX1, baseX2, 1F-(y+0.5F)/size, (y+0.5F)/size);
+//									Vector2F baseY = Vector2F.linearComb(baseY1, baseY2, 1F-(x+0.5F)/size, (x+0.5F)/size);
+//									Vector2F pos = Vector2F.linearComb(baseX, baseY, (x+0.5F)/size, (y+0.5F)/size).add(origin);
+									Vector2F pos = Vector2F.linearComb(Vector2F.linearComb(topLeft, topRight, 1F-(x+0.5F)/size, (x+0.5F)/size), Vector2F.linearComb(bottomLeft, bottomRight, 1F-(x+0.5F)/size, (x+0.5F)/size), 1F-(y+0.5F)/size, (y+0.5F)/size);
 									qr.bitmap[x][y] = !this.bitmap[Math.round(pos.x)][Math.round(pos.y)];
+									qr.from.add(pos.clone());
 								}
 							boolean ok = true;
 							for(int i = 0; i < 7; i++)
